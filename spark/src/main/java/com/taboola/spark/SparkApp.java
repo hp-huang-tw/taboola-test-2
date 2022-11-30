@@ -42,9 +42,8 @@ public class SparkApp {
                     .option("url", "jdbc:hsqldb:hsql://localhost/xdb")
                     .option("dbtable", "event_log")
                     .option("user", "sa")
-                    .insertInto("event_log");
-//                    .mode(SaveMode.Append)
-//                .save();
+                    .mode(SaveMode.Append)
+                .save();
 
 //            Properties connectionProperties = new Properties();
 //            connectionProperties.put("driver", "org.hsqldb.jdbc.JDBCDriver");
