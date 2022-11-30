@@ -1,14 +1,15 @@
 package com.taboola.spark;
 
-import java.util.concurrent.TimeUnit;
-
-import org.apache.spark.sql.functions;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.api.java.function.VoidFunction2;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.streaming.Trigger;
 import org.apache.spark.sql.types.DataTypes;
+import scala.Function2;
+import scala.runtime.BoxedUnit;
+
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class SparkApp {
 
@@ -28,9 +29,36 @@ public class SparkApp {
         //
         // The spark stream should collect, in the database, for each time bucket and event id, a counter of all the messages received.
         // The time bucket has a granularity of 1 minute.
-        events
-                .writeStream()
+
+        events.writeStream()
                 .format("console")
+                .trigger(Trigger.ProcessingTime(10, TimeUnit.SECONDS))
+                .start();
+
+        VoidFunction2<Dataset<Row>, Long> batchHandler = (dataset, batchId) -> {
+            dataset.write()
+                    .format("jdbc")
+                    .option("driver", "org.hsqldb.jdbc.JDBCDriver")
+                    .option("url", "jdbc:hsqldb:hsql://localhost/xdb")
+                    .option("dbtable", "event_log")
+                    .option("user", "sa")
+                    .insertInto("event_log");
+//                    .mode(SaveMode.Append)
+//                .save();
+
+//            Properties connectionProperties = new Properties();
+//            connectionProperties.put("driver", "org.hsqldb.jdbc.JDBCDriver");
+//            connectionProperties.put("user", "sa");
+//
+//            dataset.write()
+//                    .jdbc("jdbc:hsqldb:hsql://localhost/xdb", "event_log", connectionProperties);
+
+
+        };
+
+        events.writeStream()
+                .format("append")
+                .foreachBatch(batchHandler)
                 .trigger(Trigger.ProcessingTime(10, TimeUnit.SECONDS))
                 .start();
 
@@ -42,7 +70,8 @@ public class SparkApp {
         return spark
                 .readStream()
                 .format("rate")
-                .option("rowsPerSecond", "10000")
+                //.option("rowsPerSecond", "10000")
+                .option("rowsPerSecond", "10")
                 .load()
                 .withColumn("eventId", functions.rand(System.currentTimeMillis()).multiply(functions.lit(100)).cast(DataTypes.LongType))
                 .select("eventId", "timestamp");
