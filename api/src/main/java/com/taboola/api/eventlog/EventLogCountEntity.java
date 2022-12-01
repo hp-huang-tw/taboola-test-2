@@ -12,23 +12,20 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "event_log_count",
-        uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "time_bucket", "event_id" })})
+@IdClass(EventLogCountId.class)
+@Table(name = "event_log_count")
 @Builder
 public class EventLogCountEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-
-    @Column(name = "time_bucket", nullable = false)
+    @Column(name = "TIME_BUCKET", nullable = false)
     private Instant timeBucket;
 
-    @Column(name = "event_id", nullable = false)
-    private long eventId;
+    @Id
+    @Column(name = "EVENT_ID", nullable = false)
+    private Long eventId;
 
-    @Column(name = "event_count", nullable = false)
-    private long count;
+    @Column(name = "EVENT_COUNT", nullable = false)
+    private Long count;
 
 }
