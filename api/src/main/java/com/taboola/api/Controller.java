@@ -37,9 +37,8 @@ public class Controller {
         }
 
         return entities.stream()
-                .sorted(Comparator.comparing(EventLogCountEntity::getEventId))
                 .collect(Collectors.toMap(entity -> String.valueOf(entity.getEventId()),
-                        EventLogCountEntity::getCount, (e1, e2) -> e1, LinkedHashMap::new));
+                        EventLogCountEntity::getCount));
     }
 
     @GetMapping("/counters/time/{time}/eventId/{eventId}")

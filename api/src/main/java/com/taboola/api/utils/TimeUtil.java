@@ -8,7 +8,7 @@ import java.util.Locale;
 
 public class TimeUtil {
 
-    static ZoneId ZONE_ID_TW = ZoneId.of("Asia/Taipei");
+    public static final ZoneId ZONE_ID_TW = ZoneId.of("Asia/Taipei");
 
     public static Instant parseDataTime(Long dateTime) {
         String stringDate = String.valueOf(dateTime);
