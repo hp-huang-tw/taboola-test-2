@@ -4,7 +4,7 @@
 * D1 (11/28 PM)
   * receive homework
   * review & analysis the [Requirement](Requirement.txt)
-* D2 (11/29
+* D2 (11/29)
   * no time
 * D3 (11/30)
   * setup env
