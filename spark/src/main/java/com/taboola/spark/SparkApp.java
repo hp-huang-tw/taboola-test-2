@@ -1,5 +1,6 @@
 package com.taboola.spark;
 
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.function.VoidFunction2;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.streaming.StreamingQueryException;
@@ -14,6 +15,13 @@ import static org.apache.spark.sql.functions.col;
 public class SparkApp {
 
     public static void main(String[] args) throws StreamingQueryException {
+//        SparkSession spark  = SparkSession.builder().master("spark://localhost:7077")
+//                .appName("event-counter")
+//                .config("spark.deployMode", "cluster")
+//                .config("spark.executor.memory", "1g")
+//                .config("spark.hadoop.fs.permissions.umask-mode", "000")
+//                .getOrCreate();
+
         SparkSession spark = SparkSession.builder().master("local[4]").getOrCreate();
 
         // generate events
@@ -37,10 +45,16 @@ public class SparkApp {
         Dataset<Row> result = eventCount.select(col("time_range.start").alias("TIME_BUCKET"),
                 col("EVENT_ID"), col("count").alias("EVENT_COUNT"));
 
+//        result.writeStream()
+//                .outputMode("update")
+//                .format("console")
+//                .option("truncate", false)
+//                .start();
+
         result.writeStream()
+                .foreachBatch(writeHSQLHandler("event_log_count"))
                 .outputMode("complete")
                 .format("append")
-                .foreachBatch(writeHSQLHandler("event_log_count"))
                 .outputMode("update")
                 .trigger(Trigger.ProcessingTime(1, TimeUnit.MINUTES))
                 .start();
